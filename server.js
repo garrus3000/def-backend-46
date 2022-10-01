@@ -1,22 +1,61 @@
 require('dotenv').config();
 
 const koa = require('koa');
+var hbs = require('koa-hbs');
 
 const koaBody = require('koa-body');
 
-const { logger, loggerError } = require('./src/logs/winston.js');
+const { logger, loggerError, loggerWarn } = require('./src/logs/winston.js');
 const apiRouter = require('./src/routes/index.js');
 
 const yargArgs = require('./src/utils/yarg-cli.js');
 const cluster = require('cluster');
 const os = require('os');
+const routerInfo = require('./src/routes/info.js');
 
 const app = new koa();
+
+// app.use(hbs.middleware({
+//     viewPath: __dirname + '/public/views',
+//     extnames: '.hbs',
+// }));
+
+app.use(hbs.middleware({
+    partialsDir: __dirname + '/public/views/partials',
+     viewPath: __dirname + '/public/views',
+     extnames: '.hbs',
+}));
+
 
 app.use(koaBody());
 
 
 app.use(apiRouter.routes());
+
+app.use( routerInfo.routes());
+
+
+// Rutas inexistentes, logger Warnings
+app.use(async (ctx) => {
+	loggerWarn.log("warn", `Ruta ${ctx.url} y metodo ${ctx.method} no implementada - fyh: ${new Date().toLocaleString()} `)
+    ctx.status = 404;
+	return ctx.body = {
+		error: -2,
+		descripcion: `ruta ${ctx.url} y metodo ${ctx.method} no implementada`,
+	};
+});
+
+// Ataja errores, logger Errores
+app.use(async ( ctx, next) => {
+    try {
+        await next();
+    } catch (error) {
+        err.status = err.statusCode || err.status || 500;
+        loggerError.log("error", error);
+        ctx.response.status = err.status || 500;
+    throw err;
+    }
+});
 
 const PORT = process.env.PORT || yargArgs.puerto;
 const MODO = yargArgs.modo;

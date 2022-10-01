@@ -3,10 +3,6 @@ const { productsDao } = require("../daos");
 const productos = productsDao;
 const {loggerError}  = require("../logs/winston")
 
-// const getAllProducts = async (req, res) => {
-//     res.status(200).send(await productos.getAll())
-// };
-
 
 const getAllProducts = async (ctx) => {
     ctx.body = await productos.getAll();
@@ -20,54 +16,68 @@ const getProductsById = async (ctx) => {
     } else {
         loggerError.log({
             level: "error",
-            message: `Error Metodo: ${ctx.url} Producto ${id} no existe`,
+            message: `Error Metodo: ${ctx.method} a ${ctx.url} Producto ${id} no existe`,
         });
+        ctx.response.status = 404;
         return ctx.response.body = {
             status: 404,
-            message: `Error Metodo: ${ctx.method} Producto ${id} no exist`,
+            message: `Error Metodo: ${ctx.method} a ${ctx.url} Producto ${id} no exist`,
         }
     };
 };
 
-// const getProductsById = async (req, res) => {
-//     const id = req.params.id;
-//     const productoPorId = await productos.getById(id);
-//     if (productoPorId !== null) return res.status(200).send(productoPorId);
-//     else {
-//         loggerError.log({
-//             level: "error",
-//             message: `Error Metodo: ${req.method} Producto ${id} no existe`,
-//         });
-//         return res.status(404).send(await productos.getAll());
-//     }
-// };
+const postNewProduct = async (ctx) => {
+    const { nombre, descripcion, precio, stock, foto } = ctx.request.body;
 
-const postNewProduct = async (req, res) => {
-    const newProd = req.body
-    return res.status(201).send(await productos.save(newProd))
+    const newProduct = {
+        nombre: nombre,
+        descripcion: descripcion,
+        precio: precio,
+        stock: stock,
+        foto: foto,
+    };
 
-};
-
-const deleteProductById = async (req, res) => {
-    const id = req.params.id;
-    const productoPorId = await productos.getById(id);
-    if (productoPorId !== null) {
-        await productos.deleteById(id);
-        return res.status(201).send(`Producto ID: ${id} borrado`);
+    if (nombre && descripcion && precio && stock && foto) {
+        const product = await productos.save(newProduct);
+        ctx.response.status = 201;
+        return (ctx.response.body = product);
     } else {
         loggerError.log({
             level: "error",
-            message: `Error Metodo: ${req.method} Producto ${id} no existe`,
+            message: `Error Metodo: ${ctx.method} a ${ctx.url} Propiedades faltantes`,
         });
-        return res.status(404).json(`ERROR Producto ID:${id} no encontrado`);
+        ctx.response.status = 404;
+        return (ctx.response.body = {
+            message: `Error Metodo: ${ctx.method} a ${ctx.url} Propiedades faltantes`,
+        });
     }
 };
 
-const putProductById = async (req, res) => {
-    const id = req.params.id;
+const deleteProductById = async (ctx) => {
+    const id = ctx.request.params.id;
+    const product = await productos.getById(id);
+    if (product !== null) {
+        await productos.deleteById(id);
+        ctx.response.status = 201;
+        return ctx.response.body = `Producto ID: ${id} borrado`;
+    } else {
+        loggerError.log({
+            level: "error",
+            message: `ERROR Producto ID:${id} no encontrado`,
+        });
+        ctx.response.status = 404;
+        return ctx.response.body = {
+            status: 404,
+            message: `ERROR Producto ID:${id} no encontrado`,
+        }
+    }
+};
+
+const putProductById = async (ctx) => {
+    const id = ctx.request.params.id;
     const exist = await productos.getById(id);
-    if (exist !== null) {
-        const { nombre, descripcion, precio, foto, stock } = req.body;
+    if (exist!== null) {
+        const { nombre, descripcion, precio, foto, stock } = ctx.request.body;
         const prod_editado = await productos.updateById((id), {
             nombre,
             descripcion,
@@ -75,8 +85,15 @@ const putProductById = async (req, res) => {
             foto,
             stock,
         });
-        res.status(201).send(await productos.getById(id));
-    } else res.status(404).json(`ERROR ID:${id} no encontrado`);
+        ctx.response.status = 201;
+        return ctx.response.body = await productos.getById(id);
+    }else{
+        ctx.response.status = 404;
+        return ctx.response.body = {
+            status: 404,
+            message: `ERROR Producto ID:${id} no encontrado`,
+        };
+    }
 };
 
 module.exports = {

@@ -11,19 +11,15 @@ const {
 } = require("../../services/products-services");
 
 
-routerProductos.get('/', getAllProducts)
+routerProductos.get('/', getAllProducts);
 
-routerProductos.get('/:id', getProductsById)
+routerProductos.get('/:id', getProductsById);
 
-// routerProductos
-//     .route("/")
-//     .get( getAllProducts)
-//     .post( postNewProduct)
-// ;
-// routerProductos.get('/:id?', getProductsById);
+routerProductos.post('/', postNewProduct);
 
-// routerProductos.delete('/:id', deleteProductById);
+routerProductos.delete('/:id', deleteProductById);
 
-// routerProductos.put('/:id', putProductById)
+routerProductos.put('/:id', putProductById);
+
 
 module.exports = routerProductos;
