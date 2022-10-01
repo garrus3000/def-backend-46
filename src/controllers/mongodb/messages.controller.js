@@ -15,7 +15,7 @@ const {
 
 routerMensajes.get("/", getAllMessages);
 
-routerMensajes.get("/:id", getMessagesById);
+routerMensajes.get("/:userId", getMessagesById);
 
 routerMensajes.post("/", postNewMessage);
 

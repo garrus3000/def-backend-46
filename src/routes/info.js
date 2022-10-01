@@ -8,7 +8,7 @@ const routerInfo = new Router({
 
 
 routerInfo.get('/', async (ctx) => {
-    const PORT = ctx.request.port;
+    const PORT = ctx.response.socket.localPort;
     const infoProyecto = {
         argumentos: process.argv, // "Argumentos de entrada": process.argv,
         plataforma: process.platform, // "Nombre de la plataforma": process.platform,
