@@ -1,25 +1,16 @@
 const Router = require('koa-router');
 const os = require('os');
 
-var hbs = require('koa-hbs');
+
+const routerInfo = new Router({
+    prefix: '/info' 
+});
 
 
-const routerInfo = new Router();
-
-const info = {
-    "Argumentos de entrada": process.argv,
-    "Nombre de la plataforma": process.platform,
-    "Versión de Node.js": process.version,   
-    "Path de ejecución": process.execPath,
-    "Memoria total de reservada": process.memoryUsage().rss,
-    "Process ID": process.pid,
-    "Directorio actual del trabajo": process.cwd(),
-}
-
-routerInfo.get('/info', async (ctx) => {
-    const PORT = ctx.socket.port;
+routerInfo.get('/', async (ctx) => {
+    const PORT = ctx.request.port;
     const infoProyecto = {
-        rgumentos: process.argv, // "Argumentos de entrada": process.argv,
+        argumentos: process.argv, // "Argumentos de entrada": process.argv,
         plataforma: process.platform, // "Nombre de la plataforma": process.platform,
         versionNode: process.version, // "Versión de Node.js": process.version,
         pathEjecucion: process.execPath, // "Path de ejecución": process.execPath,
@@ -28,10 +19,15 @@ routerInfo.get('/info', async (ctx) => {
         directorioActualTrabajo: process.cwd(), // "Directorio actual del trabajo": process.cwd(),
         numProcesadores: os.cpus().length, // "Número de procesadores": os.cpus().length,
         PORT: PORT,
-    }
-    ctx.response.body =  ctx.render('info', {infoProyecto})
-})
-
+    };
+    
+    // res.render('info', { title: "Info" , infoProyecto});
+    // ctx.response.body = infoProyecto;
+    // await ctx.render('info', { title: "Info", infoProyecto: infoProyecto });
+    // await ctx.render('info', { title: "Info", infoProyecto: infoProyecto });
+    // ctx.state = { title: 'my title', infoProyecto: infoProyecto }
+    return await ctx.render('info.hbs', { title: "Info", infoProyecto: infoProyecto })
+});
 
 
 module.exports = routerInfo;

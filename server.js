@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 const koa = require('koa');
-var hbs = require('koa-hbs');
 
 const koaBody = require('koa-body');
 
@@ -15,24 +14,27 @@ const routerInfo = require('./src/routes/info.js');
 
 const app = new koa();
 
-// app.use(hbs.middleware({
-//     viewPath: __dirname + '/public/views',
-//     extnames: '.hbs',
-// }));
-
-app.use(hbs.middleware({
-    partialsDir: __dirname + '/public/views/partials',
-     viewPath: __dirname + '/public/views',
-     extnames: '.hbs',
-}));
-
-
 app.use(koaBody());
 
+const views = require('koa-views');
+const path = require('path');
+
+app.use(views(__dirname + '/public/views', {
+    map: { hbs: 'handlebars' },
+	options: {helpers: { uppercase: (str) => str.toUpperCase()},
+	cache: true,
+	// layout: {main: './layouts/main'},
+	partials: {
+		main: './partial/main',
+        header: './partial/header',
+		footer: './partial/footer'
+    	},
+	},
+}));
 
 app.use(apiRouter.routes());
 
-app.use( routerInfo.routes());
+app.use(routerInfo.routes());
 
 
 // Rutas inexistentes, logger Warnings
